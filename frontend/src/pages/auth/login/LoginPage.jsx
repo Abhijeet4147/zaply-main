@@ -74,23 +74,54 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import zaply from "../../../components/svgs/zaply.png";
 import { MdOutlineMail, MdPassword } from "react-icons/md";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const LoginPage = () => {
 	const [formData, setFormData] = useState({
 		username: "",
 		password: "",
 	});
+	
+	const queryClient = useQueryClient ();
+
+	const {mutate:loginMutation, isError, isPending, error} = useMutation({
+		mutationFn: async({username,password}) =>{
+			try {
+			const res = await fetch("/api/auth/login",{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({username,password}),
+			});
+			const data = await  res.json();
+			if(!res.ok) throw new Error(data.error || "Failed to login");
+			console.log(data);
+			return data;
+
+		} catch (error) {
+			console.error(error);
+				throw error;
+		}
+		},
+		onSuccess: () => {
+			// refetch the authUser
+			queryClient.invalidateQueries({ queryKey: ["authUser"] });
+		},
+	});
+
+
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		console.log(formData);
+		loginMutation(formData);
 	};
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const isError = false;
+	
 
 	return (
 		<div className='max-w-screen-xl mx-auto flex h-screen'>
@@ -131,11 +162,13 @@ const LoginPage = () => {
 							<MdPassword className='inline-block mr-1' /> Password
 						</span>
 					</label>
-            <button className='btn rounded-full btn-primary text-white'>Login</button>
-					{isError && <p className='text-red-500'>Something went wrong</p>}
-	
+            <button className='btn rounded-full btn-primary text-white'>
+				{isPending ? "Loading..." : "Login"}
+			</button>
+					{isError && <p className='text-red-500'>{error.message}</p>}
+					
 
-					{isError && <p className='text-red-500'>Something went wrong</p>}
+					
 				</form>
 				{/* Link for signing up */}
 				<div className='flex flex-col gap-2 mt-4'>
