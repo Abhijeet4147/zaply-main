@@ -1,5 +1,5 @@
-*.js linguist-language=JavaScript
-*.jsx linguist-language=JavaScript
-*.css linguist-language=CSS
-*.html linguist-language=HTML
-*.json linguist-language=JSON
+*.js linguist-detectable=true
+*.jsx linguist-detectable=true
+*.html linguist-detectable=true
+*.css linguist-detectable=true
+*.json linguist-detectable=true
